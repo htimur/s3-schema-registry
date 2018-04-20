@@ -1,0 +1,7 @@
+region: eu-west-1
+stacks:
+  schema-registry-test-bucket:
+    timeout: 2400
+    template-url: templates/registry-bucket.yml
+    parameters:
+      bucketName: test-schema-repository-bucket

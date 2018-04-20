@@ -15,4 +15,5 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 's3-schema-registry'
+include 'registry-core'
+
