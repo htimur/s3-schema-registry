@@ -13,7 +13,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
@@ -35,6 +36,11 @@ final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
   }
 
   @Override
+  public boolean isSubjectRegistered(String subject) {
+    return client.doesObjectExist(bucketName, getS3Key(subject));
+  }
+
+  @Override
   public SchemaMetadata register(String subject, String schema) throws IOException {
     final byte[] objectBytes = schema.getBytes(StandardCharsets.UTF_8);
     final InputStream input = new ByteArrayInputStream(objectBytes);
@@ -52,10 +58,6 @@ final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
     }
 
     return new SchemaMetadata(subject, result.getVersionId(), schema);
-  }
-
-  private String getS3Key(String subject) {
-    return String.format("%s/%s/schema", extensionFolderName, subject);
   }
 
   @Override
@@ -104,10 +106,10 @@ final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
   }
 
   @Override
-  public void revertToVersion(String subject, String version) throws IOException {
+  public SchemaMetadata revertToVersion(String subject, String version) throws IOException {
     try {
       final SchemaMetadata versionedMd = getBySubjectAndVersion(subject, version);
-      register(versionedMd.getSubject(), versionedMd.getSchema());
+      return register(versionedMd.getSubject(), versionedMd.getSchema());
     } catch (AmazonServiceException exception) {
       String message = String.format("Error reverting schema for subject %s to version %s", subject, version);
       throw new IOException(message, exception);
@@ -115,7 +117,7 @@ final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
   }
 
   @Override
-  public Collection<String> getAllSubjects() throws IOException {
+  public List<String> getAllSubjects() throws IOException {
     try {
       final ListObjectsV2Result result;
       final ListObjectsV2Request req = new ListObjectsV2Request()
@@ -140,24 +142,31 @@ final public class S3SchemaRegistryBackend implements SchemaRegistryBackend {
   }
 
   @Override
-  public Collection<String> getAllVersions(String subject) throws IOException {
+  public List<String> getAllVersions(String subject) throws IOException {
     try {
       final ListVersionsRequest request = new ListVersionsRequest()
         .withBucketName(bucketName)
         .withPrefix(getS3Key(subject));
 
+      final List<String> versionResult = Collections.emptyList();
       VersionListing versionListing;
       do {
         versionListing = client.listVersions(request);
-        return versionListing
-          .getVersionSummaries()
-          .stream()
-          .map(S3VersionSummary::getVersionId)
-          .collect(Collectors.toList());
+        for (S3VersionSummary objectSummary : versionListing.getVersionSummaries()) {
+          versionResult.add(objectSummary.getVersionId());
+        }
+        request.setKeyMarker(versionListing.getNextKeyMarker());
+        request.setVersionIdMarker(versionListing.getNextVersionIdMarker());
       } while (versionListing.isTruncated());
+
+      return versionResult;
     } catch (AmazonServiceException exception) {
       String message = "Error retrieving versions for subject " + subject;
       throw new IOException(message, exception);
     }
+  }
+
+  private String getS3Key(String subject) {
+    return String.format("%s/%s", extensionFolderName, subject);
   }
 }

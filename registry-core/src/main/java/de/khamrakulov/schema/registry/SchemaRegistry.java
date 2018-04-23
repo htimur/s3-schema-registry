@@ -7,19 +7,23 @@ public class SchemaRegistry<T> {
   private final SchemaContractVerifier<T> contractVerifier;
   private final SchemaParser<T> parser;
 
-  private SchemaRegistry(SchemaRegistryBackend backend, SchemaContractVerifier<T> contractVerifier, SchemaParser<T> parser) {
+  public SchemaRegistry(SchemaRegistryBackend backend, SchemaContractVerifier<T> contractVerifier, SchemaParser<T> parser) {
     this.backend = backend;
     this.contractVerifier = contractVerifier;
     this.parser = parser;
   }
 
   public SchemaMetadata register(String subject, T schema) throws IOException, SchemaCompatibilityException {
-    final SchemaMetadata currentMd = backend.getLatestSchemaMetadata(subject);
-    final T currentSchema = parser.parse(currentMd.getSchema());
-    if (contractVerifier.isCompatible(schema, currentSchema)) {
-      return backend.register(subject, schema.toString());
+    if (backend.isSubjectRegistered(subject)) {
+      final SchemaMetadata currentMd = backend.getLatestSchemaMetadata(subject);
+      final T currentSchema = parser.parse(currentMd.getSchema());
+      if (contractVerifier.isCompatible(schema, currentSchema)) {
+        return backend.register(subject, schema.toString());
+      } else {
+        throw new SchemaCompatibilityException("New schema is not compatible with latest registered schema.");
+      }
     } else {
-      throw new SchemaCompatibilityException("New schema is not compatible with latest registered schema");
+      return backend.register(subject, schema.toString());
     }
   }
 

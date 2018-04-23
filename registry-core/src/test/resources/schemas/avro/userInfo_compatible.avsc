@@ -1,0 +1,6 @@
+{
+    "type" : "record",
+    "name" : "userInfo_compatible",
+    "namespace" : "my.example",
+    "fields" : [{"name" : "age", "type" : "int"}, {"name": "height", "type": ["null", "int"]}]
+}
