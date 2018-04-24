@@ -1,11 +1,33 @@
 plugins {
     id "net.ltgt.errorprone" version "0.0.13"
+    id "com.jfrog.bintray" version "1.8.0"
+    id 'net.researchgate.release' version '2.7.0'
 }
 apply plugin: 'java-library'
 
 repositories {
     jcenter()
     mavenCentral()
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'java'
+}
+
+publishing {
+    publications {
+        SchemaRegistryPublication(MavenPublication) {
+            from components.java
+            groupId 'de.khamrakulov.schema-registry'
+            artifactId 'registry-core'
+            version project.property('version')
+        }
+    }
 }
 
 dependencies {
@@ -19,3 +41,29 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+release {
+    git {
+        requireBranch = '(master|\\d+\\.\\d+)'
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    publications = ['SchemaRegistryPublication']
+    pkg {
+        repo = 'maven'
+        name = 's3-schema-registry'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/htimur/s3-schema-registry.git'
+        labels = ['avro',
+                  'schema',
+                  'registry',
+                  'schemas',
+                  'schema-registry',
+                  's3',
+                  'aws']
+        publicDownloadNumbers = true
+    }
+}
