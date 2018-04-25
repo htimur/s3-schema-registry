@@ -22,6 +22,18 @@ Theoretically any storage engine can be used as a backend. The `SchemaRegistryBa
 
 * S3 - core package contains backend implementation for the AWS S3 service.
 
+The following object structure will be crated by the backend
+```
+. s3 bucket
+  |- project folder (prefix)
+       |- subject 1
+       |- subject 2
+       .
+       .
+       |- subject n 
+
+```
+
 ## Installation
 
 Maven
