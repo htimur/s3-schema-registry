@@ -6,10 +6,8 @@ import org.apache.avro.Schema;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
@@ -18,23 +16,22 @@ import static org.junit.Assert.*;
 public class SchemaRegistryTest {
 
   private static final String firstSchemaText = getResourceFileAsString("schemas/avro/userInfo.avsc");
-  private static final Schema firstSchema = new Schema.Parser().parse(firstSchemaText);
+  private static final Schema firstSchema = new Schema.Parser().parse(Objects.requireNonNull(firstSchemaText));
 
   private static final String compatibleSchemaText = getResourceFileAsString("schemas/avro/userInfo_compatible.avsc");
-  private static final Schema compatibleSchema = new Schema.Parser().parse(compatibleSchemaText);
+  private static final Schema compatibleSchema = new Schema.Parser().parse(Objects.requireNonNull(compatibleSchemaText));
 
   private static final String incompatibleSchemaText = getResourceFileAsString("schemas/avro/userInfo_incompatible.avsc");
-  private static final Schema incompatibleSchema = new Schema.Parser().parse(incompatibleSchemaText);
+  private static final Schema incompatibleSchema = new Schema.Parser().parse(Objects.requireNonNull(incompatibleSchemaText));
 
   private SchemaRegistry<Schema> schemaRegistry;
   private SchemaRegistryBackend backend;
   private AvroSchemaContractVerifier fullChecker;
-  private AvroSchemaParser avroSchemaParser;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     backend = mock(SchemaRegistryBackend.class);
-    avroSchemaParser = new AvroSchemaParser();
+    AvroSchemaParser avroSchemaParser = new AvroSchemaParser();
     fullChecker = mock(AvroSchemaContractVerifier.class);
     schemaRegistry = new SchemaRegistry<>(backend, fullChecker, avroSchemaParser);
   }
@@ -102,11 +99,16 @@ public class SchemaRegistryTest {
    * @param fileName the path to the resource file
    * @return the file's contents or null if the file could not be opened
    */
-  public static String getResourceFileAsString(String fileName) {
-    InputStream is = SchemaRegistryTest.class.getClassLoader().getResourceAsStream(fileName);
-    if (is != null) {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-      return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+  private static String getResourceFileAsString(String fileName) {
+
+    try {
+      InputStream is = SchemaRegistryTest.class.getClassLoader().getResourceAsStream(fileName);
+      if (is != null) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+        return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+      }
+    } catch (UnsupportedEncodingException ignored) {
+
     }
     return null;
   }

@@ -80,6 +80,7 @@ public class AvroSchemaContractVerifier implements SchemaContractVerifier<Schema
    *
    * @param previousSchemas Full schema history in chronological order
    */
+  @Override
   public boolean isCompatible(Schema newSchema, List<Schema> previousSchemas) {
     List<Schema> previousSchemasCopy = new ArrayList<>(previousSchemas);
     try {
