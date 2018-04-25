@@ -1,10 +1,10 @@
-[ ![Download](https://api.bintray.com/packages/htimur/maven/s3-schema-registry/images/download.svg) ](https://bintray.com/htimur/maven/s3-schema-registry/_latestVersion)
+[![Download](https://api.bintray.com/packages/htimur/maven/s3-schema-registry/images/download.svg)](https://bintray.com/htimur/maven/s3-schema-registry/_latestVersion)
 
-#Schema registry based on AWS S3
+# Schema registry based on AWS S3
 
 Lightweight schema registry implementation with AWS S3 service as the storage engine.
 
-#The idea
+# The idea
 
 To reduce the operational overhead hosting solutions like "Confluent Schema Registry", the idea is to delegate the schema validation to the data producer (schema owner) on client side during the CI/CD flow. This insures the required compatibility level and consumers can download the latest schema using the client on the proper stage of the process.
 
@@ -22,7 +22,7 @@ Theoretically any storage engine can be used as a backend. The `SchemaRegistryBa
 
 * S3 - core package contains backend implementation for the AWS S3 service.
 
-##Installation
+## Installation
 
 Maven
 ```xml
@@ -44,11 +44,11 @@ SBT
 libraryDependencies += "de.khamrakulov.schema-registry" % "registry-core" % "1.0.1"
 ```
 
-###AWS CloudFormation template
+### AWS CloudFormation template
 
 In the `stack` folder, can be found an AWS stack definition, that can be used to create a versioned S3 bucket.
 
-###Java publish example
+### Java publish example
 
 ```java
 import de.khamrakulov.schema.registry.*;
@@ -73,7 +73,7 @@ public class Main {
 }
 ```
 
-###Scala publish example
+### Scala publish example
 
 ```scala
 import de.khamrakulov.schema.registry._
