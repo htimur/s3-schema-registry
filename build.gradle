@@ -80,3 +80,5 @@ bintray {
         publicDownloadNumbers = true
     }
 }
+
+afterReleaseBuild.dependsOn bintrayUpload
